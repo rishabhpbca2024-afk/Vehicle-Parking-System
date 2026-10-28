@@ -36,7 +36,8 @@ $stmt = $pdo->prepare("
         p.method as payment_method,
         p.status as payment_status,
         p.paid_at,
-        u.name as operator_name
+        u.name as operator_name,
+        u.role as operator_role
     FROM parking_sessions ps
     JOIN vehicles v ON ps.vehicle_id = v.id
     JOIN parking_slots s ON ps.slot_id = s.id
@@ -52,6 +53,10 @@ if (!$receipt) {
     set_flash('danger', 'Payment receipt record not found.');
     redirect('vehicles/history.php');
 }
+
+$roleRaw = strtoupper($receipt['operator_role'] ?? 'OPERATOR');
+$roleLabel = ($roleRaw === 'ADMIN') ? 'Admin' : (($roleRaw === 'OPERATOR') ? 'Operator' : ucfirst(strtolower($roleRaw)));
+$issuerName = $receipt['operator_name'] ?? 'Counter';
 
 $duration = calculate_parking_duration($receipt['entry_time'], $receipt['exit_time']);
 $vehicleTypesMap = get_vehicle_types();
@@ -89,7 +94,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="border-bottom border-secondary-subtle pb-3 mb-3">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
                     <i class="bi bi-p-square-fill fs-3 text-success"></i>
-                    <h5 class="fw-bold mb-0 text-white"><?= htmlspecialchars(APP_NAME) ?></h5>
+                    <h5 class="fw-bold mb-0 receipt-data-text"><?= htmlspecialchars(APP_NAME) ?></h5>
                 </div>
                 <small class="text-secondary">Official Parking Payment Tax Invoice</small>
             </div>
@@ -110,11 +115,11 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="text-start mb-3">
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Vehicle Number:</span>
-                    <strong class="text-white font-monospace fs-6"><?= e($receipt['registration_number']) ?></strong>
+                    <strong class="receipt-data-text font-monospace fs-6"><?= e($receipt['registration_number']) ?></strong>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Vehicle Category:</span>
-                    <span class="text-white"><?= e($vMeta['label']) ?></span>
+                    <span class="receipt-data-text"><?= e($vMeta['label']) ?></span>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Slot & Level:</span>
@@ -126,11 +131,11 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="text-start mb-3">
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Check-In:</span>
-                    <span class="text-white"><?= format_datetime($receipt['entry_time']) ?></span>
+                    <span class="receipt-data-text"><?= format_datetime($receipt['entry_time']) ?></span>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Check-Out:</span>
-                    <span class="text-white"><?= format_datetime($receipt['exit_time']) ?></span>
+                    <span class="receipt-data-text"><?= format_datetime($receipt['exit_time']) ?></span>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Total Duration:</span>
@@ -138,7 +143,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
                     <span class="text-secondary">Applied Tariff Rate:</span>
-                    <span class="text-white"><?= format_currency($receipt['rate_per_hour']) ?> / hour</span>
+                    <span class="receipt-data-text"><?= format_currency($receipt['rate_per_hour']) ?> / hour</span>
                 </div>
             </div>
 
@@ -160,9 +165,28 @@ require_once __DIR__ . '/../includes/navbar.php';
                 </div>
             </div>
 
+            <!-- Payment / Receipt QR Code -->
+            <?php 
+                $qrExtensions = ['png', 'jpg', 'jpeg', 'webp'];
+                $qrSrc = null;
+                foreach ($qrExtensions as $ext) {
+                    $testPath = __DIR__ . '/../assets/images/payment_qr.' . $ext;
+                    if (file_exists($testPath)) {
+                        $qrSrc = asset('images/payment_qr.' . $ext);
+                        break;
+                    }
+                }
+            ?>
+            <?php if ($qrSrc): ?>
+                <div class="my-3 p-2 bg-white rounded text-dark d-inline-block border shadow-sm">
+                    <img src="<?= $qrSrc ?>" alt="Payment QR Code" style="width: 130px; height: 130px; object-fit: contain;" class="d-block mx-auto mb-1">
+                    <small class="fw-bold d-block text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">SCAN TO PAY / VERIFY</small>
+                </div>
+            <?php endif; ?>
+
             <!-- Operator and Barcode Notice -->
             <div class="text-secondary small mt-3" style="font-size: 0.75rem;">
-                <p class="mb-1">Issued by Operator: <strong><?= e($receipt['operator_name'] ?? 'Counter') ?></strong></p>
+                <p class="mb-1">Issued by <?= e($roleLabel) ?>: <strong><?= e($issuerName) ?></strong></p>
                 <div class="font-monospace text-secondary my-1" style="letter-spacing: 3px;">
                     ||| | ||||| || |||||| | |||
                 </div>

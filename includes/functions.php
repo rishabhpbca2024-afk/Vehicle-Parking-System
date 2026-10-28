@@ -66,6 +66,113 @@ function normalize_registration_number(string $regNumber): string
 }
 
 /**
+ * Validate and format Indian vehicle registration number.
+ * Supports:
+ *  - Standard plates: e.g. MH 12 AB 1234, DL 1C 9999, UP 32 B 123
+ *  - Bharat (BH) Series: e.g. 22 BH 1234 AA
+ *  - Temporary / Dealer / Vintage: e.g. MH 12 TEMP 1234, RJ 14 1234
+ *
+ * @param string $regNumber
+ * @return array ['is_valid' => bool, 'formatted' => string, 'error' => string]
+ */
+function validate_vehicle_registration_number(string $regNumber): array
+{
+    $raw = trim($regNumber);
+    if ($raw === '') {
+        return [
+            'is_valid' => false,
+            'formatted' => '',
+            'error' => 'Vehicle registration number is required.'
+        ];
+    }
+
+    // Remove internal spaces and hyphens, convert to uppercase
+    $clean = strtoupper(preg_replace('/[\s\-]/', '', $raw));
+
+    // Reject illegal special characters
+    if (preg_match('/[^A-Z0-9]/', $clean)) {
+        return [
+            'is_valid' => false,
+            'formatted' => $raw,
+            'error' => 'Registration number cannot contain special characters.'
+        ];
+    }
+
+    // Reject invalid lengths
+    if (strlen($clean) < 5 || strlen($clean) > 14) {
+        return [
+            'is_valid' => false,
+            'formatted' => $raw,
+            'error' => 'Registration number length is invalid (must be 5 to 14 characters).'
+        ];
+    }
+
+    // 1. Check Bharat Series (BH) - e.g. 22BH1234AA or 21BH5678A
+    if (preg_match('/^([0-9]{2})BH([0-9]{4})([A-Z]{1,2})$/', $clean, $matches)) {
+        $formatted = "{$matches[1]} BH {$matches[2]} {$matches[3]}";
+        return [
+            'is_valid' => true,
+            'formatted' => $formatted,
+            'error' => ''
+        ];
+    }
+
+    // 2. Standard Indian Vehicle Formats
+    // Valid Indian 2-letter State & UT codes
+    $validStates = [
+        'AN', 'AP', 'AR', 'AS', 'BR', 'CH', 'CG', 'DD', 'DN', 'DL', 'GA', 'GJ',
+        'HR', 'HP', 'JH', 'JK', 'KA', 'KL', 'LA', 'LD', 'MP', 'MH', 'MN', 'ML',
+        'MZ', 'NL', 'OD', 'OR', 'PB', 'PY', 'RJ', 'SK', 'TN', 'TS', 'TR', 'UP',
+        'UK', 'UA', 'WB'
+    ];
+
+    $stateCode = substr($clean, 0, 2);
+    if (!in_array($stateCode, $validStates, true)) {
+        return [
+            'is_valid' => false,
+            'formatted' => $raw,
+            'error' => "Invalid state code '{$stateCode}'. Must start with a valid Indian State/UT code (e.g. MH, DL, UP, KA, HR, RJ, GJ)."
+        ];
+    }
+
+    // Match State(2) + RTO(1-2 digits, not 00) + Series(0-4 letters e.g. AB or TEMP) + Number(1-4 digits, not 0000)
+    if (preg_match('/^([A-Z]{2})([0-9]{1,2})([A-Z]{0,4})([0-9]{1,4})$/', $clean, $matches)) {
+        $rto = $matches[2];
+        $series = $matches[3];
+        $digits = $matches[4];
+
+        if ($rto === '00') {
+            return [
+                'is_valid' => false,
+                'formatted' => $raw,
+                'error' => 'RTO district code cannot be 00.'
+            ];
+        }
+
+        if ((int)$digits === 0) {
+            return [
+                'is_valid' => false,
+                'formatted' => $raw,
+                'error' => 'Vehicle number cannot be 0000.'
+            ];
+        }
+
+        $formatted = $matches[1] . ' ' . $rto . ($series !== '' ? ' ' . $series : '') . ' ' . $digits;
+        return [
+            'is_valid' => true,
+            'formatted' => $formatted,
+            'error' => ''
+        ];
+    }
+
+    return [
+        'is_valid' => false,
+        'formatted' => $raw,
+        'error' => 'Invalid vehicle registration format. Valid formats: MH 12 AB 1234, DL 01 C 4567, or 22 BH 1234 AA.'
+    ];
+}
+
+/**
  * Format currency with configured symbol
  */
 function format_currency(float|int|string $amount): string

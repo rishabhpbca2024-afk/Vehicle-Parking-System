@@ -45,15 +45,17 @@ $selectedSlotId = 0;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf_or_die();
 
-    $registrationNumber = normalize_registration_number($_POST['registration_number'] ?? '');
+    $rawRegNumber = $_POST['registration_number'] ?? '';
     $selectedVehicleType = sanitize($_POST['vehicle_type'] ?? '');
     $selectedSlotId = isset($_POST['slot_id']) ? (int)$_POST['slot_id'] : 0;
 
-    // Validation
-    if ($registrationNumber === '') {
-        $errors[] = 'Vehicle registration number is required.';
-    } elseif (strlen($registrationNumber) < 3 || strlen($registrationNumber) > 20) {
-        $errors[] = 'Please enter a valid registration number (3 to 20 characters).';
+    // Strict Indian Vehicle Registration Validation
+    $plateCheck = validate_vehicle_registration_number($rawRegNumber);
+    if (!$plateCheck['is_valid']) {
+        $errors[] = $plateCheck['error'];
+        $registrationNumber = normalize_registration_number($rawRegNumber);
+    } else {
+        $registrationNumber = $plateCheck['formatted'];
     }
 
     if (!array_key_exists($selectedVehicleType, $vehicleTypesMap)) {
@@ -230,18 +232,28 @@ require_once __DIR__ . '/../includes/navbar.php';
 
                     <!-- Vehicle Registration Number -->
                     <div class="mb-4">
-                        <label for="registration_number" class="form-label">Vehicle Registration / Plate Number</label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="registration_number" class="form-label mb-0">Vehicle Registration / Plate Number</label>
+                            <span class="badge bg-secondary-subtle text-info small" id="plate-badge-type">Indian Format</span>
+                        </div>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text bg-dark border-secondary text-primary">
                                 <i class="bi bi-card-heading fs-4"></i>
                             </span>
                             <input type="text" class="form-control form-control-lg font-monospace fw-bold" 
                                    id="registration_number" name="registration_number" required autofocus
-                                   placeholder="e.g. MH 02 AB 1234 or DL 1C 9999"
+                                   placeholder="e.g. MH 02 AB 1234 or DL 1C 9999 or 22 BH 1234 AA"
                                    data-transform="uppercase"
+                                   maxlength="16"
+                                   autocomplete="off"
                                    value="<?= e($registrationNumber) ?>">
+                            <span class="input-group-text bg-dark border-secondary" id="plate-valid-icon">
+                                <i class="bi bi-dash-circle text-secondary fs-5"></i>
+                            </span>
                         </div>
-                        <small class="text-secondary">Registration number is automatically normalized and converted to uppercase.</small>
+                        <div id="plate-live-status" class="mt-2 small text-secondary">
+                            <i class="bi bi-info-circle me-1"></i>Format: <strong>State (2 letters)</strong> + <strong>RTO Code</strong> + <strong>Series</strong> + <strong>Digits</strong> (e.g. <code>MH 12 AB 1234</code> or <code>22 BH 1234 AA</code>).
+                        </div>
                     </div>
 
                     <!-- Vehicle Type Selection -->
@@ -289,7 +301,8 @@ require_once __DIR__ . '/../includes/navbar.php';
                                 </div>
                             </div>
                             <div class="col-sm-6 mt-2 mt-sm-0">
-                                <small class="text-secondary d-block">Check-in Operator</small>
+                                <?php $userRoleLabel = (strtoupper($user['role'] ?? '') === 'ADMIN') ? 'Admin' : 'Operator'; ?>
+                                <small class="text-secondary d-block">Check-in <?= e($userRoleLabel) ?></small>
                                 <div class="fw-semibold text-white">
                                     <i class="bi bi-person-circle me-1 text-primary"></i><?= e($user['name']) ?>
                                 </div>
@@ -299,7 +312,7 @@ require_once __DIR__ . '/../includes/navbar.php';
 
                     <!-- Submit Button -->
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg fw-bold py-3 shadow-lg">
+                        <button type="submit" id="btn-submit-entry" class="btn btn-primary btn-lg fw-bold py-3 shadow-lg">
                             <i class="bi bi-check-circle-fill me-2"></i>Issue Parking Ticket & Check In
                         </button>
                     </div>
@@ -308,5 +321,123 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const regInput = document.getElementById('registration_number');
+    const validIcon = document.getElementById('plate-valid-icon');
+    const statusText = document.getElementById('plate-live-status');
+    const badgeType = document.getElementById('plate-badge-type');
+    const submitBtn = document.getElementById('btn-submit-entry');
+
+    const validStates = new Set([
+        'AN', 'AP', 'AR', 'AS', 'BR', 'CH', 'CG', 'DD', 'DN', 'DL', 'GA', 'GJ',
+        'HR', 'HP', 'JH', 'JK', 'KA', 'KL', 'LA', 'LD', 'MP', 'MH', 'MN', 'ML',
+        'MZ', 'NL', 'OD', 'OR', 'PB', 'PY', 'RJ', 'SK', 'TN', 'TS', 'TR', 'UP',
+        'UK', 'UA', 'WB'
+    ]);
+
+    function validatePlate(val) {
+        const clean = val.toUpperCase().replace(/[\s\-]/g, '');
+        if (!clean) {
+            return { valid: null, msg: 'Format: State (2 letters) + RTO + Series + Digits (e.g. MH 12 AB 1234 or 22 BH 1234 AA).' };
+        }
+
+        if (/[^A-Z0-9]/.test(clean)) {
+            return { valid: false, msg: '❌ Special characters are not allowed.' };
+        }
+
+        // BH Series check (e.g. 22BH1234AA)
+        const bhMatch = clean.match(/^([0-9]{2})BH([0-9]{4})([A-Z]{1,2})$/);
+        if (bhMatch) {
+            return { 
+                valid: true, 
+                type: 'BH Series', 
+                formatted: `${bhMatch[1]} BH ${bhMatch[2]} ${bhMatch[3]}`,
+                msg: `✔ Valid Bharat Series: <strong>${bhMatch[1]} BH ${bhMatch[2]} ${bhMatch[3]}</strong>`
+            };
+        }
+
+        if (clean.length < 2) {
+            return { valid: null, msg: 'Enter 2-letter state code (e.g. MH, DL, UP, KA, HR)...' };
+        }
+
+        const state = clean.substring(0, 2);
+        if (!validStates.has(state)) {
+            return { valid: false, msg: `❌ '${state}' is not a valid Indian State/UT code (Use MH, DL, UP, KA, HR, RJ, GJ, etc.)` };
+        }
+
+        // Standard Indian Plate Match
+        const stdMatch = clean.match(/^([A-Z]{2})([0-9]{1,2})([A-Z]{0,4})([0-9]{1,4})$/);
+        if (stdMatch) {
+            const rto = stdMatch[2];
+            const series = stdMatch[3];
+            const digits = stdMatch[4];
+
+            if (rto === '00') {
+                return { valid: false, msg: '❌ RTO district code cannot be 00.' };
+            }
+
+            if (parseInt(digits, 10) === 0) {
+                return { valid: false, msg: '❌ Vehicle number digits cannot be all zeros.' };
+            }
+
+            // If digits are at least 1 digit and overall length >= 6
+            if (digits.length >= 1 && clean.length >= 6) {
+                const formatted = `${stdMatch[1]} ${rto}${series ? ' ' + series : ''} ${digits}`;
+                return {
+                    valid: true,
+                    type: 'Standard RTO',
+                    formatted: formatted,
+                    msg: `✔ Valid Registration Number: <strong>${formatted}</strong>`
+                };
+            }
+        }
+
+        return { valid: false, msg: '⚠️ Incomplete format. Example: MH 12 AB 1234 or DL 01 C 4567' };
+    }
+
+    function checkLive() {
+        const val = regInput.value.trim();
+        const res = validatePlate(val);
+
+        if (res.valid === true) {
+            regInput.classList.remove('is-invalid');
+            regInput.classList.add('is-valid');
+            validIcon.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-5"></i>';
+            statusText.className = 'mt-2 small text-success';
+            statusText.innerHTML = res.msg;
+            if (badgeType && res.type) {
+                badgeType.textContent = res.type;
+                badgeType.className = 'badge bg-success-subtle text-success small';
+            }
+        } else if (res.valid === false) {
+            regInput.classList.remove('is-valid');
+            regInput.classList.add('is-invalid');
+            validIcon.innerHTML = '<i class="bi bi-x-circle-fill text-danger fs-5"></i>';
+            statusText.className = 'mt-2 small text-danger';
+            statusText.innerHTML = res.msg;
+            if (badgeType) {
+                badgeType.textContent = 'Invalid Format';
+                badgeType.className = 'badge bg-danger-subtle text-danger small';
+            }
+        } else {
+            regInput.classList.remove('is-valid', 'is-invalid');
+            validIcon.innerHTML = '<i class="bi bi-dash-circle text-secondary fs-5"></i>';
+            statusText.className = 'mt-2 small text-secondary';
+            statusText.innerHTML = res.msg;
+            if (badgeType) {
+                badgeType.textContent = 'Indian Format';
+                badgeType.className = 'badge bg-secondary-subtle text-info small';
+            }
+        }
+    }
+
+    regInput.addEventListener('input', checkLive);
+    if (regInput.value) {
+        checkLive();
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

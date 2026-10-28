@@ -385,6 +385,13 @@ body {
         border: 1px solid #000000 !important;
         color: #000000 !important;
     }
+
+    .printable-ticket-card img,
+    .printable-receipt-card img {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
 
 /* Mobile Responsiveness */
@@ -546,5 +553,137 @@ body {
 [data-bs-theme="light"] .app-footer {
     background-color: #ffffff !important;
     border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ==========================================================================
+   Receipt and Ticket Data Text (Contrast in Light & Dark Mode)
+   ========================================================================== */
+.receipt-data-text {
+    color: #f8fafc;
+}
+
+[data-theme="light"] .receipt-data-text,
+[data-bs-theme="light"] .receipt-data-text,
+[data-theme="light"] .printable-ticket-card .receipt-data-text,
+[data-bs-theme="light"] .printable-ticket-card .receipt-data-text,
+[data-theme="light"] .printable-receipt-card .receipt-data-text,
+[data-bs-theme="light"] .printable-receipt-card .receipt-data-text {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .printable-ticket-card,
+[data-bs-theme="light"] .printable-ticket-card,
+[data-theme="light"] .printable-receipt-card,
+[data-bs-theme="light"] .printable-receipt-card {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Universal Light Mode Card & Text Contrast Engine */
+[data-theme="light"] body,
+[data-bs-theme="light"] body {
+    color: #1e293b;
+    background-color: #f1f5f9;
+}
+
+[data-theme="light"] .card-modern,
+[data-bs-theme="light"] .card-modern {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .card-modern h1,
+[data-theme="light"] .card-modern h2,
+[data-theme="light"] .card-modern h3,
+[data-theme="light"] .card-modern h4,
+[data-theme="light"] .card-modern h5,
+[data-theme="light"] .card-modern h6,
+[data-bs-theme="light"] .card-modern h1,
+[data-bs-theme="light"] .card-modern h2,
+[data-bs-theme="light"] .card-modern h3,
+[data-bs-theme="light"] .card-modern h4,
+[data-bs-theme="light"] .card-modern h5,
+[data-bs-theme="light"] .card-modern h6 {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .card-modern .text-white:not(.btn):not(.btn *):not(.badge):not(.badge *):not(.bg-primary *):not(.bg-success *):not(.bg-danger *),
+[data-bs-theme="light"] .card-modern .text-white:not(.btn):not(.btn *):not(.badge):not(.badge *):not(.bg-primary *):not(.bg-success *):not(.bg-danger *) {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .card-modern-body > .bg-dark,
+[data-bs-theme="light"] .card-modern-body > .bg-dark,
+[data-theme="light"] .card-modern .bg-dark:not(.badge),
+[data-bs-theme="light"] .card-modern .bg-dark:not(.badge) {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .card-modern .bg-dark .text-white,
+[data-bs-theme="light"] .card-modern .bg-dark .text-white {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .card-modern .bg-dark .text-secondary,
+[data-bs-theme="light"] .card-modern .bg-dark .text-secondary {
+    color: #64748b !important;
+}
+
+/* Light mode table adjustments */
+[data-theme="light"] .table-dark,
+[data-bs-theme="light"] .table-dark {
+    --bs-table-bg: #f8fafc !important;
+    --bs-table-color: #0f172a !important;
+    --bs-table-border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .table-dark td,
+[data-bs-theme="light"] .table-dark td,
+[data-theme="light"] .table-dark th,
+[data-bs-theme="light"] .table-dark th {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .table-dark .text-white,
+[data-bs-theme="light"] .table-dark .text-white {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .table-dark .text-secondary,
+[data-bs-theme="light"] .table-dark .text-secondary {
+    color: #64748b !important;
+}
+
+/* Light mode payment selector cards */
+[data-theme="light"] .cursor-pointer.bg-dark,
+[data-bs-theme="light"] .cursor-pointer.bg-dark {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .cursor-pointer.bg-dark:hover,
+[data-bs-theme="light"] .cursor-pointer.bg-dark:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #6366f1 !important;
+}
+
+[data-theme="light"] .cursor-pointer.bg-dark .text-white,
+[data-bs-theme="light"] .cursor-pointer.bg-dark .text-white {
+    color: #0f172a !important;
+}
+
+/* Light mode borders */
+[data-theme="light"] .border-secondary,
+[data-bs-theme="light"] .border-secondary,
+[data-theme="light"] .border-secondary-subtle,
+[data-bs-theme="light"] .border-secondary-subtle {
+    border-color: #e2e8f0 !important;
 }
 

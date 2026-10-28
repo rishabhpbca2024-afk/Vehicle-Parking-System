@@ -29,7 +29,8 @@ $stmt = $pdo->prepare("
         v.vehicle_type,
         s.slot_number,
         s.floor_number,
-        u.name as operator_name
+        u.name as operator_name,
+        u.role as operator_role
     FROM parking_sessions ps
     JOIN vehicles v ON ps.vehicle_id = v.id
     JOIN parking_slots s ON ps.slot_id = s.id
@@ -44,6 +45,10 @@ if (!$ticket) {
     set_flash('danger', 'Parking session ticket not found.');
     redirect('vehicles/active.php');
 }
+
+$roleRaw = strtoupper($ticket['operator_role'] ?? 'OPERATOR');
+$roleLabel = ($roleRaw === 'ADMIN') ? 'Admin' : (($roleRaw === 'OPERATOR') ? 'Operator' : ucfirst(strtolower($roleRaw)));
+$issuerName = $ticket['operator_name'] ?? 'System';
 
 $vehicleTypesMap = get_vehicle_types();
 $vMeta = $vehicleTypesMap[$ticket['vehicle_type']] ?? ['short' => $ticket['vehicle_type'], 'label' => $ticket['vehicle_type']];
@@ -77,7 +82,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="border-bottom border-secondary-subtle pb-3 mb-3">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
                     <i class="bi bi-p-square-fill fs-3 text-primary"></i>
-                    <h5 class="fw-bold mb-0 text-white"><?= htmlspecialchars(APP_NAME) ?></h5>
+                    <h5 class="fw-bold mb-0 receipt-data-text"><?= htmlspecialchars(APP_NAME) ?></h5>
                 </div>
                 <small class="text-secondary">Official Parking Access Ticket</small>
             </div>
@@ -118,15 +123,15 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="text-start small mb-3">
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle">
                     <span class="text-secondary">Entry Timestamp:</span>
-                    <strong class="text-white"><?= format_datetime($ticket['entry_time']) ?></strong>
+                    <strong class="receipt-data-text"><?= format_datetime($ticket['entry_time']) ?></strong>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle">
                     <span class="text-secondary">Applicable Tariff:</span>
                     <strong class="text-success"><?= format_currency($ticket['rate_per_hour']) ?> / hour</strong>
                 </div>
                 <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle">
-                    <span class="text-secondary">Issued By Operator:</span>
-                    <span class="text-white"><?= e($ticket['operator_name'] ?? 'System') ?></span>
+                    <span class="text-secondary">Issued By <?= e($roleLabel) ?>:</span>
+                    <span class="receipt-data-text fw-bold"><?= e($issuerName) ?></span>
                 </div>
             </div>
 
