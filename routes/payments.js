@@ -163,3 +163,4 @@ router.get('/receipt/:id', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+

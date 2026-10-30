@@ -38,3 +38,4 @@ function calculateParkingCharge(entryTime, exitTime, ratePerHour, minHours = 1, 
 module.exports = {
     calculateParkingCharge
 };
+

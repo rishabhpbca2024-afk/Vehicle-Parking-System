@@ -88,3 +88,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`  SmartPark (Node.js & MySQL) is running at: http://127.0.0.1:${PORT}`);
     console.log('======================================================================');
 });
+
