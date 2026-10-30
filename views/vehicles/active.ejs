@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-white mb-0"><i class="bi bi-clock-history me-2 text-info"></i>Active Parked Vehicles</h5>
+            <small class="text-secondary">Real-time roster of vehicles currently inside the premises</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 fs-6">
+                <i class="bi bi-car-front-fill me-1"></i><%= sessions.length %> Parked
+            </span>
+            <a href="/vehicles/entry" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>New Entry
+            </a>
+        </div>
+    </div>
+
+    <div class="card-modern-body pb-0">
+        <!-- Filters & Search Form -->
+        <form method="GET" action="/vehicles/active" class="row g-2 mb-4">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="search" placeholder="Search vehicle number or slot..." value="<%= search %>">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="type">
+                    <option value="">All Vehicle Categories</option>
+                    <% for (const [vKey, vMeta] of Object.entries(vehicleTypesMap)) { %>
+                        <option value="<%= vKey %>" <%= filterType === vKey ? 'selected' : '' %>><%= vMeta.label %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <% if (search || filterType) { %>
+                    <a href="/vehicles/active" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Ticket #</th>
+                    <th>Vehicle Reg.</th>
+                    <th>Category</th>
+                    <th>Space / Level</th>
+                    <th>Check-in Time</th>
+                    <th>Elapsed</th>
+                    <th>Est. Charge</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (sessions.length === 0) { %>
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-secondary">
+                            <i class="bi bi-inbox display-5 d-block mb-2 text-muted"></i>
+                            No active parked vehicles found matching criteria.
+                        </td>
+                    </tr>
+                <% } else { %>
+                    <% sessions.forEach(function(sess) { 
+                        const vMeta = vehicleTypesMap[sess.vehicle_type] || { short: sess.vehicle_type, badge: 'badge-car', icon: 'bi-car-front' };
+                    %>
+                        <tr>
+                            <td class="fw-bold text-white font-monospace">TKT-<%= String(sess.id).padStart(6, '0') %></td>
+                            <td>
+                                <span class="fw-bold text-white font-monospace fs-6"><%= sess.registration_number %></span>
+                            </td>
+                            <td>
+                                <span class="badge <%= vMeta.badge %>">
+                                    <i class="bi <%= vMeta.icon %> me-1"></i><%= vMeta.short %>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-warning font-monospace">
+                                    <%= sess.slot_number %> (<%= sess.floor_number %>)
+                                </span>
+                            </td>
+                            <td class="small text-secondary"><%= formatDateTime(sess.entry_time) %></td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-info font-monospace"><%= sess.duration %></span>
+                            </td>
+                            <td>
+                                <strong class="text-success font-monospace fs-6"><%= formatCurrency(sess.estimatedAmount) %></strong>
+                            </td>
+                            <td class="text-end">
+                                <a href="/vehicles/ticket/<%= sess.id %>" class="btn btn-outline-secondary btn-sm" title="View / Print Ticket">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                                <a href="/vehicles/checkout/<%= sess.id %>" class="btn btn-success btn-sm ms-1 fw-bold">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Checkout
+                                </a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,33 @@
+{
+  "name": "vechile_ms",
+  "version": "1.0.0",
+  "description": "A modern, functional, responsive, and production-conscious **Vehicle Parking Management System** built with **Core PHP 8.1+**, **MySQL 8+ / MariaDB**, **PDO**, and **Bootstrap 5**.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rishabhpbca2024-afk/Vehicle-Parking-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rishabhpbca2024-afk/Vehicle-Parking-System/issues"
+  },
+  "homepage": "https://github.com/rishabhpbca2024-afk/Vehicle-Parking-System#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^18.0.9",
+    "ejs": "^7.0.2",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "morgan": "^1.12.1",
+    "mysql2": "^3.24.6"
+  }
+}

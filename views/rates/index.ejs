@@ -1,0 +1,117 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-white mb-0"><i class="bi bi-currency-exchange me-2 text-success"></i>Parking Tariff & Rates Policy</h5>
+            <small class="text-secondary">Configure billable rates, minimum floor hours, and billing quanta per vehicle category</small>
+        </div>
+        <span class="badge bg-dark border border-secondary text-info">Admin Only</span>
+    </div>
+
+    <div class="card-modern-body">
+        <div class="alert alert-info py-2 px-3 small mb-4">
+            <i class="bi bi-info-circle me-1"></i><strong>Rate Snapshot Notice:</strong> Updating hourly tariffs or minimum billable hours only affects new check-ins. Active parked vehicles and historical records remain protected at their original check-in snapshot rate.
+        </div>
+
+        <div class="row g-3">
+            <% rates.forEach(function(r) { 
+                const vMeta = vehicleTypesMap[r.vehicle_type] || { label: r.vehicle_type, short: r.vehicle_type, icon: 'bi-car-front' };
+            %>
+                <div class="col-lg-6">
+                    <div class="p-4 rounded bg-dark border border-secondary h-100 d-flex flex-column justify-content-between shadow-sm">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary-subtle">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi <%= vMeta.icon %> fs-3 text-primary"></i>
+                                    <div>
+                                        <h6 class="fw-bold text-white mb-0"><%= vMeta.label %></h6>
+                                        <small class="text-secondary font-monospace"><%= r.vehicle_type %></small>
+                                    </div>
+                                </div>
+                                <% if (r.is_active) { %>
+                                    <span class="badge bg-success-subtle text-success">Active Tariff</span>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">Inactive</span>
+                                <% } %>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-4">
+                                    <small class="text-secondary d-block">Hourly Rate</small>
+                                    <span class="fs-4 fw-bold text-success font-monospace"><%= formatCurrency(r.hourly_rate) %></span>
+                                    <small class="text-muted d-block">per hour</small>
+                                </div>
+                                <div class="col-sm-4">
+                                    <small class="text-secondary d-block">Minimum Charge</small>
+                                    <span class="fs-5 fw-bold text-white font-monospace"><%= r.minimum_charge_hours %> hr</span>
+                                    <small class="text-muted d-block">floor threshold</small>
+                                </div>
+                                <div class="col-sm-4">
+                                    <small class="text-secondary d-block">Increment Step</small>
+                                    <span class="fs-5 fw-bold text-info font-monospace"><%= r.billing_increment_minutes %>m</span>
+                                    <small class="text-muted d-block">quantum billing</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-top border-secondary-subtle text-end">
+                            <button type="button" class="btn btn-outline-light btn-sm fw-semibold" 
+                                    data-bs-toggle="modal" data-bs-target="#editRateModal<%= r.id %>">
+                                <i class="bi bi-pencil-square me-1"></i>Edit Rate Policy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal: Edit Rate -->
+                <div class="modal fade" id="editRateModal<%= r.id %>" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content card-modern">
+                            <div class="modal-header border-bottom border-secondary-subtle">
+                                <h5 class="modal-title fw-bold text-white">Edit Rate: <%= vMeta.label %></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="POST" action="/rates/update">
+                                <input type="hidden" name="rate_id" value="<%= r.id %>">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Hourly Tariff Rate (₹)</label>
+                                        <input type="number" step="0.50" min="1" class="form-control form-control-lg font-monospace fw-bold" 
+                                               name="hourly_rate" value="<%= parseFloat(r.hourly_rate).toFixed(2) %>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Minimum Billable Hours (Floor)</label>
+                                        <input type="number" min="1" max="24" class="form-control font-monospace" 
+                                               name="minimum_charge_hours" value="<%= r.minimum_charge_hours %>" required>
+                                        <small class="text-secondary">Vehicles parked for less than this time will still be billed for this duration.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Billing Increment (Minutes)</label>
+                                        <select class="form-select font-monospace" name="billing_increment_minutes">
+                                            <option value="15" <%= r.billing_increment_minutes === 15 ? 'selected' : '' %>>15 Minutes</option>
+                                            <option value="30" <%= r.billing_increment_minutes === 30 ? 'selected' : '' %>>30 Minutes</option>
+                                            <option value="60" <%= r.billing_increment_minutes === 60 ? 'selected' : '' %>>60 Minutes (1 Hour)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check form-switch mt-3">
+                                        <input class="form-check-input" type="checkbox" id="active_<%= r.id %>" name="is_active" value="1" <%= r.is_active ? 'checked' : '' %>>
+                                        <label class="form-check-label text-white" for="active_<%= r.id %>">Rate Policy is Active</label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top border-secondary-subtle">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success fw-bold">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

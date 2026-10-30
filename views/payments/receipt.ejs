@@ -1,0 +1,118 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <!-- Actions Toolbar (Hidden during print) -->
+        <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+            <a href="/vehicles/history" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Parking History
+            </a>
+            <div class="d-flex gap-2">
+                <a href="/vehicles/entry" class="btn btn-dark btn-sm border-secondary">
+                    <i class="bi bi-plus-circle me-1 text-primary"></i>New Entry
+                </a>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                    <i class="bi bi-printer me-1"></i>Print Receipt
+                </button>
+            </div>
+        </div>
+
+        <!-- Printable Receipt Card -->
+        <div class="card-modern printable-receipt-card text-center p-4">
+            <div class="border-bottom border-secondary-subtle pb-3 mb-3">
+                <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                    <i class="bi bi-p-square-fill fs-3 text-success"></i>
+                    <h5 class="fw-bold mb-0 receipt-data-text"><%= appName %></h5>
+                </div>
+                <small class="text-secondary">Official Parking Payment Tax Invoice</small>
+            </div>
+
+            <!-- Receipt & Ticket IDs -->
+            <div class="d-flex justify-content-between align-items-center py-2 px-3 bg-dark rounded border border-secondary mb-3 small">
+                <div class="text-start">
+                    <span class="text-secondary d-block">Receipt #</span>
+                    <strong class="text-white font-monospace"><%= generateReceiptNumber(receipt.payment_id || receipt.session_id) %></strong>
+                </div>
+                <div class="text-end">
+                    <span class="text-secondary d-block">Ticket #</span>
+                    <strong class="text-info font-monospace"><%= generateTicketNumber(receipt.session_id) %></strong>
+                </div>
+            </div>
+
+            <!-- Vehicle Summary -->
+            <div class="text-start mb-3">
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Vehicle Number:</span>
+                    <strong class="receipt-data-text font-monospace fs-6"><%= receipt.registration_number %></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Vehicle Category:</span>
+                    <span class="receipt-data-text"><%= vMeta.label %></span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Slot & Level:</span>
+                    <span class="text-warning font-monospace fw-bold"><%= receipt.slot_number %> (<%= receipt.floor_number %>)</span>
+                </div>
+            </div>
+
+            <!-- Timings Breakdown -->
+            <div class="text-start mb-3">
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Check-In:</span>
+                    <span class="receipt-data-text"><%= formatDateTime(receipt.entry_time) %></span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Check-Out:</span>
+                    <span class="receipt-data-text"><%= formatDateTime(receipt.exit_time) %></span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Total Duration:</span>
+                    <strong class="text-info font-monospace"><%= duration.formatted %></strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom border-secondary-subtle small">
+                    <span class="text-secondary">Applied Tariff Rate:</span>
+                    <span class="receipt-data-text"><%= formatCurrency(receipt.rate_per_hour) %> / hour</span>
+                </div>
+            </div>
+
+            <!-- Total Paid Box -->
+            <div class="p-3 bg-dark rounded border border-success my-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-uppercase fw-bold text-secondary">Total Paid:</span>
+                    <span class="fs-3 fw-bold text-success font-monospace">
+                        <%= formatCurrency(receipt.payment_amount || receipt.session_amount) %>
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary small">
+                    <span class="text-secondary">Payment Method:</span>
+                    <span class="badge bg-secondary"><%= mMeta.label %></span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1 small">
+                    <span class="text-secondary">Transaction Status:</span>
+                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>PAID</span>
+                </div>
+            </div>
+
+            <!-- Payment / Receipt QR Code -->
+            <% if (qrSrc) { %>
+                <div class="my-3 p-2 bg-white rounded text-dark d-inline-block border shadow-sm">
+                    <img src="<%= qrSrc %>" alt="Payment QR Code" style="width: 130px; height: 130px; object-fit: contain;" class="d-block mx-auto mb-1">
+                    <small class="fw-bold d-block text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">SCAN TO PAY / VERIFY</small>
+                </div>
+            <% } %>
+
+            <!-- Operator and Barcode Notice -->
+            <div class="text-secondary small mt-3" style="font-size: 0.75rem;">
+                <p class="mb-1">Issued by <%= roleLabel %>: <strong><%= issuerName %></strong></p>
+                <div class="font-monospace text-secondary my-1" style="letter-spacing: 3px;">
+                    ||| | ||||| || |||||| | |||
+                </div>
+                <p class="mb-0">Thank you for parking with us! Have a safe journey.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,69 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+<%- include('partials/navbar') %>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-9">
+        <div class="card-modern">
+            <div class="card-modern-header">
+                <div>
+                    <h5 class="fw-bold text-white mb-0"><i class="bi bi-person-gear me-2 text-primary"></i>My Profile & Account Security</h5>
+                    <small class="text-secondary">Update personal display name and account password</small>
+                </div>
+            </div>
+
+            <div class="card-modern-body">
+                <form method="POST" action="/profile">
+                    <!-- Read-only Account Meta -->
+                    <div class="p-3 rounded bg-dark border border-secondary mb-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-secondary d-block">Email Address</small>
+                                <span class="fw-bold text-white"><%= user.email %></span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <small class="text-secondary d-block">Security Role</small>
+                                <span class="badge <%= user.role === 'ADMIN' ? 'bg-danger' : 'bg-primary' %>">
+                                    <%= user.role %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display Name -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <h6 class="fw-bold text-white mb-3"><i class="bi bi-shield-lock me-2 text-warning"></i>Change Password (Optional)</h6>
+
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Leave blank if not changing">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Minimum 6 characters">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter new password">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                            <i class="bi bi-check-circle me-1"></i>Save Profile Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

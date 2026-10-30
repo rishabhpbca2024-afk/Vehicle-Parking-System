@@ -1,0 +1,108 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-white mb-0"><i class="bi bi-receipt me-2 text-primary"></i>Payments & Transactions Log</h5>
+            <small class="text-secondary">Official financial register of all collected parking revenues</small>
+        </div>
+        <a href="/vehicles/entry" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>New Entry
+        </a>
+    </div>
+
+    <div class="card-modern-body pb-0">
+        <!-- Filter Form -->
+        <form method="GET" action="/payments" class="row g-2 mb-4">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="search" placeholder="Search vehicle registration or payment ID..." value="<%= search %>">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="method">
+                    <option value="">All Payment Methods</option>
+                    <% for (const [mKey, mMeta] of Object.entries(paymentMethods)) { %>
+                        <option value="<%= mKey %>" <%= methodFilter === mKey ? 'selected' : '' %>><%= mMeta.label %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <% if (search || methodFilter) { %>
+                    <a href="/payments" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Receipt #</th>
+                    <th>Ticket #</th>
+                    <th>Vehicle Reg.</th>
+                    <th>Category</th>
+                    <th>Slot</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Payment Time</th>
+                    <th class="text-end">Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (payments.length === 0) { %>
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-secondary">
+                            <i class="bi bi-inbox display-5 d-block mb-2 text-muted"></i>
+                            No payment transactions found matching criteria.
+                        </td>
+                    </tr>
+                <% } else { %>
+                    <% payments.forEach(function(pay) { 
+                        const vMeta = vehicleTypesMap[pay.vehicle_type] || { short: pay.vehicle_type, badge: 'badge-car', icon: 'bi-car-front' };
+                        const mMeta = paymentMethods[pay.method] || { label: pay.method, icon: 'bi-cash-stack', badge: 'bg-secondary' };
+                    %>
+                        <tr>
+                            <td class="fw-bold text-white font-monospace"><%= generateReceiptNumber(pay.payment_id) %></td>
+                            <td class="text-info font-monospace"><%= generateTicketNumber(pay.session_id) %></td>
+                            <td>
+                                <span class="fw-bold text-white font-monospace"><%= pay.registration_number %></span>
+                            </td>
+                            <td>
+                                <span class="badge <%= vMeta.badge %>">
+                                    <i class="bi <%= vMeta.icon %> me-1"></i><%= vMeta.short %>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-light">
+                                    <%= pay.slot_number %> (<%= pay.floor_number %>)
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="text-success font-monospace fs-6"><%= formatCurrency(pay.amount) %></strong>
+                            </td>
+                            <td>
+                                <span class="badge <%= mMeta.badge %>">
+                                    <i class="bi <%= mMeta.icon %> me-1"></i><%= mMeta.label %>
+                                </span>
+                            </td>
+                            <td class="small text-secondary"><%= formatDateTime(pay.paid_at) %></td>
+                            <td class="text-end">
+                                <a href="/payments/receipt/<%= pay.session_id %>" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-printer me-1"></i>Receipt
+                                </a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

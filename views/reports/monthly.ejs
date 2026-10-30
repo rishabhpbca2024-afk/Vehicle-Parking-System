@@ -1,0 +1,144 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-white mb-0"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Monthly Revenue & Financial Audit</h5>
+            <small class="text-secondary">Calendar month financial aggregation for <%= yearMonthStr %></small>
+        </div>
+        <button type="button" class="btn btn-outline-light btn-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Print Report
+        </button>
+    </div>
+
+    <div class="card-modern-body pb-0">
+        <!-- Month Picker Form -->
+        <form method="GET" action="/reports/monthly" class="row g-2 mb-4 align-items-center">
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label text-secondary small mb-1">Select Month:</label>
+                <select class="form-select" name="month">
+                    <% 
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    for (let m = 1; m <= 12; m++) { 
+                    %>
+                        <option value="<%= m %>" <%= selectedMonth === m ? 'selected' : '' %>><%= monthNames[m - 1] %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label text-secondary small mb-1">Select Year:</label>
+                <select class="form-select" name="year">
+                    <% for (let y = 2024; y <= 2030; y++) { %>
+                        <option value="<%= y %>" <%= selectedYear === y ? 'selected' : '' %>><%= y %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-sm-4 col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-repeat me-1"></i>Generate</button>
+            </div>
+        </form>
+
+        <!-- KPI Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="p-3 rounded bg-dark border border-secondary text-center">
+                    <small class="text-secondary text-uppercase d-block" style="font-size: 0.72rem;">Total Monthly Entries</small>
+                    <h3 class="fw-bold text-white mb-0 mt-1"><%= monthlyEntries %></h3>
+                    <small class="text-info"><i class="bi bi-box-arrow-in-down-right me-1"></i>Vehicles Received</small>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="p-3 rounded bg-dark border border-secondary text-center">
+                    <small class="text-secondary text-uppercase d-block" style="font-size: 0.72rem;">Completed Sessions</small>
+                    <h3 class="fw-bold text-white mb-0 mt-1"><%= monthlyExits %></h3>
+                    <small class="text-success"><i class="bi bi-check2-all me-1"></i>Checked Out</small>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="p-3 rounded bg-dark border border-success text-center">
+                    <small class="text-secondary text-uppercase d-block" style="font-size: 0.72rem;">Total Monthly Revenue</small>
+                    <h3 class="fw-bold text-success mb-0 mt-1 font-monospace"><%= formatCurrency(monthlyRevenue) %></h3>
+                    <small class="text-success"><i class="bi bi-wallet2 me-1"></i>Verified Collections</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Chart -->
+        <div class="p-3 rounded bg-dark border border-secondary mb-4">
+            <h6 class="fw-bold text-white mb-3">Day-by-Day Revenue Progression</h6>
+            <div style="height: 250px;">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day-by-Day Revenue Matrix Table -->
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Date</th>
+                    <th>Entries</th>
+                    <th class="text-end">Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% daysMatrix.forEach(function(row) { %>
+                    <tr>
+                        <td class="fw-bold text-white">Day <%= row.day %></td>
+                        <td class="small text-secondary"><%= row.dateStr %></td>
+                        <td><%= row.entries %> entries</td>
+                        <td class="text-end font-monospace <%= row.revenue > 0 ? 'text-success fw-bold' : 'text-secondary' %>">
+                            <%= formatCurrency(row.revenue) %>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('monthlyChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(chartLabels) %>,
+                datasets: [{
+                    label: 'Daily Revenue',
+                    data: <%- JSON.stringify(chartRevData) %>,
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

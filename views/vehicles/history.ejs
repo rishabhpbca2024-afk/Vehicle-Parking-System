@@ -1,0 +1,113 @@
+<%- include('../partials/header') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/navbar') %>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-white mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Parking Sessions History</h5>
+            <small class="text-secondary">Audit log of all completed vehicle stays and recorded checkouts</small>
+        </div>
+        <a href="/vehicles/entry" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>New Entry
+        </a>
+    </div>
+
+    <div class="card-modern-body pb-0">
+        <!-- Filter Form -->
+        <form method="GET" action="/vehicles/history" class="row g-2 mb-4">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="search" placeholder="Search vehicle or slot..." value="<%= search %>">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="type">
+                    <option value="">All Categories</option>
+                    <% for (const [vKey, vMeta] of Object.entries(vehicleTypesMap)) { %>
+                        <option value="<%= vKey %>" <%= filterType === vKey ? 'selected' : '' %>><%= vMeta.label %></option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" name="from" placeholder="From Date" value="<%= dateFrom %>">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" name="to" placeholder="To Date" value="<%= dateTo %>">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <% if (search || filterType || dateFrom || dateTo) { %>
+                    <a href="/vehicles/history" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Ticket #</th>
+                    <th>Vehicle Reg.</th>
+                    <th>Category</th>
+                    <th>Slot</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Duration</th>
+                    <th>Amount Paid</th>
+                    <th>Method</th>
+                    <th class="text-end">Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (history.length === 0) { %>
+                    <tr>
+                        <td colspan="10" class="text-center py-5 text-secondary">
+                            <i class="bi bi-inbox display-5 d-block mb-2 text-muted"></i>
+                            No completed parking history records found matching criteria.
+                        </td>
+                    </tr>
+                <% } else { %>
+                    <% history.forEach(function(item) { 
+                        const vMeta = vehicleTypesMap[item.vehicle_type] || { short: item.vehicle_type, badge: 'badge-car', icon: 'bi-car-front' };
+                        const duration = calculateParkingDuration(item.entry_time, item.exit_time);
+                    %>
+                        <tr>
+                            <td class="fw-bold text-white font-monospace">TKT-<%= String(item.session_id).padStart(6, '0') %></td>
+                            <td>
+                                <span class="fw-bold text-white font-monospace"><%= item.registration_number %></span>
+                            </td>
+                            <td>
+                                <span class="badge <%= vMeta.badge %>">
+                                    <i class="bi <%= vMeta.icon %> me-1"></i><%= vMeta.short %>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-light">
+                                    <%= item.slot_number %> (<%= item.floor_number %>)
+                                </span>
+                            </td>
+                            <td class="small text-secondary"><%= formatDateTime(item.entry_time) %></td>
+                            <td class="small text-secondary"><%= formatDateTime(item.exit_time) %></td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-info font-monospace"><%= duration.formatted %></span>
+                            </td>
+                            <td>
+                                <strong class="text-success font-monospace fs-6"><%= formatCurrency(item.payment_amount || item.session_amount) %></strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary"><%= item.payment_method || 'CASH' %></span>
+                            </td>
+                            <td class="text-end">
+                                <a href="/payments/receipt/<%= item.session_id %>" class="btn btn-outline-success btn-sm fw-semibold">
+                                    <i class="bi bi-receipt me-1"></i>Receipt
+                                </a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
