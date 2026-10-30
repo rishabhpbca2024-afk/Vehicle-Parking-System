@@ -27,6 +27,12 @@ router.get('/', requireAuth, async (req, res) => {
 
 // POST /profile
 router.post('/', requireAuth, async (req, res) => {
+    // Cyber Security Defense: Prevent demo users from altering admin credentials or locking the account
+    if (req.session.user && req.session.user.isDemo) {
+        req.flash('danger', '🔒 Security Protection: Modifying profile credentials or changing system passwords is disabled in Recruiter Demo Mode.');
+        return res.redirect('/profile');
+    }
+
     const userId = req.session.user.id;
     const name = String(req.body.name || '').trim();
     const currentPassword = req.body.current_password || '';

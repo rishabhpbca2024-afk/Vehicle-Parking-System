@@ -4,6 +4,8 @@ const path = require('path');
 const session = require('express-session');
 const flash = require('connect-flash');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const { attachUser } = require('./middleware/auth');
 
@@ -19,6 +21,45 @@ const profileRoutes = require('./routes/profile');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// =========================================================================
+// CYBER SECURITY & DEFENSE MIDDLEWARE
+// =========================================================================
+// 1. HTTP Security Headers (Defends against Clickjacking, MIME-Sniffing, XSS)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            connectSrc: ["'self'"]
+        }
+    },
+    crossOriginEmbedderPolicy: false
+}));
+
+// 2. Global Anti-DoS & Abuse Rate Limiter (Protects server from flooding)
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes window
+    max: 500, // max 500 requests per 15 min per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many requests from this IP. Please try again after a few minutes.'
+});
+app.use(globalLimiter);
+
+// 3. Strict Rate Limiter for Authentication & Demo Endpoints (Brute-force defense)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30, // max 30 login attempts per 15 min
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many authentication attempts. Please wait 15 minutes before trying again.'
+});
+app.use('/login', authLimiter);
+app.use('/demo-login', authLimiter);
 
 // Logging & Body Parsers
 if (process.env.NODE_ENV !== 'production') {
