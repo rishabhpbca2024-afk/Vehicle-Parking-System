@@ -1,8 +1,42 @@
-# SmartPark — Vehicle Parking Management System (Core PHP & MySQL)
+# SmartPark — Vehicle Parking Management System (Node.js, Express & MySQL)
 
-A modern, functional, responsive, and production-conscious **Vehicle Parking Management System** built with **Core PHP 8.1+**, **MySQL 8+ / MariaDB**, **PDO**, and **Bootstrap 5**.
+A modern, functional, responsive, and production-ready **Vehicle Parking Management System** built with **Node.js**, **Express.js**, **MySQL**, **EJS**, and **Bootstrap 5**.
 
-The system features an automated zero-manual-SQL database installer, row-level ACID transactions for slot locking and allocation, snapshot-based parking tariffs, real-time analytics, thermal-formatted ticket printing, and role-based access control (Admin & Operator).
+The system features real-time Indian vehicle plate validation, ACID transaction-safe slot allocation, PhonePe UPI QR code checkout simulation, thermal printable tickets and tax invoices, role-based access control (Admin & Operator), and a **1-Click Recruiter Demo Showcase**.
+
+---
+
+## ⚡ Quick Start (Node.js & MySQL)
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Configure Environment (`.env`)
+Make sure your `.env` contains your MySQL connection:
+```env
+DATABASE_URL="mysql://root@127.0.0.1:3306/parking_management"
+DB_PASSWORD="your_mysql_password"
+PORT=8000
+SESSION_SECRET="smartpark_secret_key"
+```
+
+### 3. Start the Server
+```bash
+npm start
+```
+*Or double click **`start_server.bat`** (or `start_node.bat`)*
+
+Then open your browser at:  
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+---
+
+## 🌟 Recruiter & Portfolio Live Demo Mode
+When you open the login page (`http://127.0.0.1:8000/login`), you have instant 1-click access buttons:
+- 🟢 **1-Click Admin Demo**: Auto-logs in as **Rishabh Pal** (Full analytics, rates configuration, reports & slot management).
+- 🔵 **1-Click Operator Demo**: Auto-logs in as **Muskan Sharma** (Desk operations, vehicle entry, ticket printing, and checkout).
 
 ---
 
