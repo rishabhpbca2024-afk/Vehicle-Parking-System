@@ -2,7 +2,7 @@
 
 A modern, responsive, and production-ready **Vehicle Parking Management System** built with **Node.js**, **Express.js**, **MySQL**, **EJS**, and **Bootstrap 5**.
 
-The system features real-time Indian vehicle plate validation (Standard RTO & Bharat Series), ACID-transaction safe slot allocation, PhonePe UPI QR code billing simulation, thermal printable tickets and tax invoices, role-based access control (Admin & Operator), and an interactive **1-Click Recruiter Demo Showcase**.
+The system features real-time Indian vehicle plate validation (Standard RTO & Bharat Series), ACID-transaction safe slot allocation, UPI QR code billing simulation (Google Pay, PhonePe, Paytm, BHIM), thermal printable tickets and tax invoices, role-based access control (Admin & Operator), and an interactive **1-Click Recruiter Demo Showcase**.
 
 ---
 
@@ -80,8 +80,8 @@ Open your web browser and navigate to:
    - Prevents race conditions when two operators simultaneously assign the same parking bay.
    - Supports auto-allocation of the nearest matching slot or manual bay selection.
 
-3. **Interactive PhonePe UPI Checkout Modal (`views/vehicles/checkout.ejs`)**:
-   - Dedicated counter modal with official PhonePe UPI QR code.
+3. **Interactive UPI Checkout Modal (`views/vehicles/checkout.ejs`)**:
+   - Dedicated counter modal with official UPI QR code (Google Pay, PhonePe, Paytm, etc.).
    - Live 3-minute payment countdown timer.
    - Includes **"Auto-Detect / Simulate Scan (Demo)"** button for instant recruiter demonstrations.
 
@@ -156,11 +156,11 @@ Vechile_MS/
 │   │   ├── entry.ejs         # Vehicle check-in form with live plate validation
 │   │   ├── active.ejs        # Live parked vehicles roster & real-time counter
 │   │   ├── ticket.ejs        # Thermal entry ticket with barcode simulation
-│   │   ├── checkout.ejs      # Exit billing console with PhonePe UPI modal
+│   │   ├── checkout.ejs      # Exit billing console with UPI QR modal
 │   │   └── history.ejs       # Searchable completed parking sessions log
 │   ├── payments/
 │   │   ├── index.ejs         # Payments audit register
-│   │   └── receipt.ejs       # Official printable tax invoice with PhonePe QR
+│   │   └── receipt.ejs       # Official printable tax invoice with UPI QR
 │   ├── slots/
 │   │   └── index.ejs         # Switchable table and visual bay grid view
 │   ├── rates/
@@ -174,7 +174,7 @@ Vechile_MS/
     ├── js/
     │   └── app.js            # Digital clock, uppercase transformers, theme switcher
     └── images/
-        └── payment_qr.png    # High-resolution PhonePe UPI payment QR code
+        └── payment_qr.png    # High-resolution UPI payment QR code image
 ```
 
 ---
