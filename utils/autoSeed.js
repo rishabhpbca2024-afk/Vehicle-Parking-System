@@ -62,3 +62,4 @@ async function autoSeedDatabase() {
 }
 
 module.exports = { autoSeedDatabase };
+
