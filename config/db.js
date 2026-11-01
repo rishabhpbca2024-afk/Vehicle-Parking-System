@@ -1,11 +1,13 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const dbHost = process.env.DB_HOST || '127.0.0.1';
-const dbPort = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
-const dbUser = process.env.DB_USER || 'root';
-const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : '';
-const dbName = process.env.DB_NAME || 'parking_management';
+const dbHost = process.env.DB_HOST || process.env.HOST || '127.0.0.1';
+// Intelligent port detection: if DB_PORT is set, use it; if host is tidb, default to 4000
+const isTiDB = dbHost.toLowerCase().includes('tidbcloud');
+const dbPort = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : (isTiDB ? 4000 : 3306);
+const dbUser = process.env.DB_USER || process.env.USERNAME || 'root';
+const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.PASSWORD || '');
+const dbName = process.env.DB_NAME || process.env.DATABASE || 'parking_management';
 
 // Check if using DATABASE_URL or individual credentials
 let poolConfig = {
