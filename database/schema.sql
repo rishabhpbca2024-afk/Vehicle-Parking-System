@@ -150,4 +150,12 @@ VALUES
     ('Basement', 'HV-02', 'HEAVY', 'AVAILABLE'),
     ('Basement', 'B1-01', 'SUV', 'AVAILABLE');
 
+-- ------------------------------------------------------------------------------
+-- Initial Seed: Default Demo Users (Idempotent INSERT IGNORE)
+-- ------------------------------------------------------------------------------
+INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `is_active`, `created_at`, `updated_at`)
+VALUES
+    (1, 'Rishabh Pal', 'rishabh@gmail.com', '$2b$10$K2lpQPuT98ke6VujZJaABOomKdRLFs98QKCK1wd.xdiw8UwTj7UaC', 'ADMIN', 1, NOW(), NOW()),
+    (2, 'Muskan Sharma', 'muskan@gmail.com', '$2b$10$d.IK6KZsn2iA9NyZHTqaUuspNzBYFWicVXiBTXCuHgvQZyT6uE0i.', 'OPERATOR', 1, NOW(), NOW());
+
 SET FOREIGN_KEY_CHECKS = 1;

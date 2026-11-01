@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 const { attachUser } = require('./middleware/auth');
+const { autoSeedDatabase } = require('./utils/autoSeed');
 
 // Route Handlers
 const authRoutes = require('./routes/auth');
@@ -124,9 +125,10 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
     console.log('======================================================================');
     console.log(`  SmartPark (Node.js & MySQL) is running at: http://127.0.0.1:${PORT}`);
     console.log('======================================================================');
+    await autoSeedDatabase();
 });
 
